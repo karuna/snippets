@@ -1,0 +1,1443 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+
+ Author: Archit Baweja <bighead@users.sourceforge.net>
+ Copyright (C) 2004 Archit Baweja <bighead@users.sourceforge.net>
+ Copyright (C) 2005 Michael Witrant <mike@lepton.fr>
+ Copyright (C) 2006 Gabriel Bauman <gbauman@gmail.com>
+ Copyright (C) 2009 Alexandre da Silva <lexrupy@gmail.com>
+ Copyright (C) 2011 Jan Lelis <mail@janlelis.de>
+
+ This library is free software; you can redistribute it and/or modify
+ it under the terms of the GNU General Public License as published by
+ the Free Software Foundation; either version 2 of the License, or
+ (at your option) any later version.
+
+ This program is distributed in the hope that it will be useful,
+ but WITHOUT ANY WARRANTY; without even the implied warranty of
+ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ GNU General Public License for more details.
+
+ You should have received a copy of the GNU General Public License
+ along with this program; if not, write to the Free Software
+ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+
+-->
+<language id="ruby" _name="Ruby" version="2.0" _section="Scripts">
+  <metadata>
+    <property name="mimetypes">application/x-ruby;text/x-ruby</property>
+    <property name="globs">*.rb;*.gemspec;*.rake;*.ru;*thor;Rakefile;Capfile;Gemfile;Thorfile;.irbrc</property>
+    <property name="line-comment-start">#</property>
+    <property name="block-comment-start">=begin</property>
+    <property name="block-comment-end">=end</property>
+  </metadata>
+
+  <styles>
+    <style id="method" _name="Method or local variable"  map-to="def:identifier"/>
+      <style id="important-method" _name="Important methods" map-to="def:builtin"/>
+    <style id="keyword" _name="Keyword" map-to="def:keyword"/>
+      <style id="syntax-char" _name="Syntactical characters" map-to="ruby:keyword"/>
+      <style id="operator" _name="Operators" map-to="def:operator"/>
+      <style id="special-value" _name="nil, false, true" map-to="def:boolean"/>
+        <style id="self" _name="self" map-to="ruby:special-value"/>
+        <style id="true" _name="true" map-to="ruby:special-value"/>
+        <style id="false" _name="false" map-to="ruby:special-value"/>
+        <style id="nil" _name="nil" map-to="ruby:special-value"/>
+    <style id="collection" _name="Collections (Arrays, Hashes)" map-to="ruby:syntax-char"/>
+    <style id="function" _name="Function definition"   map-to="def:function"/>
+
+    <style id="constant" _name="Constant" map-to="def:constant"/>
+      <style id="important-constant" _name="Important constant" map-to="def:special-constant"/>
+
+    <style id="instance-variable" _name="Instance variable" map-to="def:identifier"/>
+      <style id="class-variable" _name="Class variable" map-to="ruby:instance-variable"/>
+    <style id="global-variable" _name="Global variable" map-to="def:identifier"/>
+      <style id="special-variable" _name="Special variable" map-to="ruby:global-variable"/>
+
+    <style id="comment" _name="Comment" map-to="def:comment"/>
+      <style id="encoding-comment" _name="Magic Comment" map-to="def:shebang"/>
+      <style id="comment-tag" _name="YARD comment tag" map-to="def:doc-comment"/>
+      <!--style id="comment-tag-value" _name="YARD comment tag value" map-to="def:doc-comment-element"/-->
+
+    <style id="string" _name="String" map-to="def:string"/>
+      <style id="string-delimiter" _name="String delimiter" map-to="ruby:string"/>
+      <style id="character" _name="Character in question mark notation" map-to="def:character"/>
+      <style id="special-char" _name="Escaped Character" map-to="def:special-char"/>
+
+    <style id="system" _name="System command" map-to="ruby:string"/>
+      <style id="system-delimiter" _name="System command delimiter" map-to="ruby:system"/>
+
+    <style id="symbol" _name="Symbol" map-to="ruby:function"/>
+      <style id="symbol-delimiter" _name="Symbol delimiter" map-to="ruby:symbol"/>
+
+    <style id="regex" _name="Regular expression" map-to="ruby:string"/>
+      <style id="regex-delimiter" _name="Regular expression delimiter" map-to="ruby:regex"/>
+      <style id="regex-options" _name="Regular expression options" map-to="ruby:regex-delimiter"/>
+
+    <style id="float" _name="Floating point number" map-to="def:floating-point"/>
+    <style id="integer" _name="Integer number" map-to="def:decimal"/>
+    <style id="base-n-integer" _name="Base-N number" map-to="def:base-n-integer"/>
+
+    <style id="error" _name="Erroneous syntax" map-to="def:error"/>
+  </styles>
+
+  <definitions>
+
+    <context id="special-chars" style-ref="special-char">
+      <match>\\((0-7){3}|(x[a-fA-F0-9]{2})|(c\S)|([CM]-\S)|(M-C-\S)|.)</match>
+    </context>
+
+    <context id="multiline-comment" style-ref="comment" class-disabled="no-spell-check">
+      <start>^=begin</start>
+      <end>^=end</end>
+      <include>
+        <context ref="def:in-comment"/>
+        <context ref="in-comment-docs"/>
+      </include>
+    </context>
+
+    <context id="shell-like-comment" style-ref="comment" end-at-line-end="true"
+             class-disabled="no-spell-check">
+      <start>#</start>
+      <include>
+        <context ref="def:in-comment"/>
+        <context ref="in-comment-docs"/>
+      </include>
+    </context>
+
+    <context id="in-comment-docs" style-ref="comment-tag" extend-parent="false">
+      <match>@\w+(\s*\[.*?\])?</match>
+    </context>
+
+    <context id="encoding-comment" style-ref="encoding-comment" first-line-only="true"
+             class="no-spell-check">
+      <match case-sensitive="false">\s*#.*coding.*</match>
+    </context>
+
+    <define-regex id="alnum">[^&amp;&gt;&lt;!?"'`@$%/()=\\{\[\]}*+~#|;,:.\-\^\s]</define-regex>
+    <define-regex id="no_method_prefix">(?&lt;![\w\.\:])</define-regex>
+    <define-regex id="no_method_suffix">(?!(\%{alnum}|[?!]))</define-regex>
+
+    <context id="keywords" style-ref="keyword">
+      <prefix>\%{no_method_prefix}</prefix>
+      <suffix>\%{no_method_suffix}</suffix>
+      <!-- only put here if not already used at another place -->
+      <keyword>BEGIN</keyword>
+      <keyword>END</keyword>
+      <keyword>alias</keyword>
+      <keyword>begin</keyword>
+      <keyword>break</keyword>
+      <keyword>case</keyword>
+      <keyword>class</keyword>
+      <keyword>do</keyword>
+      <keyword>else</keyword>
+      <keyword>elsif</keyword>
+      <keyword>end</keyword>
+      <keyword>ensure</keyword>
+      <keyword>for</keyword>
+      <keyword>if</keyword>
+      <keyword>in</keyword>
+      <keyword>module</keyword>
+      <keyword>next</keyword>
+      <keyword>redo</keyword>
+      <keyword>rescue</keyword>
+      <keyword>retry</keyword>
+      <keyword>return</keyword>
+      <keyword>super</keyword>
+      <keyword>then</keyword>
+      <keyword>undef</keyword>
+      <keyword>unless</keyword>
+      <keyword>until</keyword>
+      <keyword>when</keyword>
+      <keyword>while</keyword>
+      <keyword>yield</keyword>
+    </context>
+
+    <context id="important-methods" style-ref="important-method">
+      <suffix></suffix>
+      <keyword>warn\%{no_method_suffix}</keyword>
+      <keyword>untrusted\?</keyword>
+      <keyword>untrust\%{no_method_suffix}</keyword>
+      <keyword>untrace_var\%{no_method_suffix}</keyword>
+      <keyword>untaint\%{no_method_suffix}</keyword>
+      <keyword>undef_method\%{no_method_suffix}</keyword>
+      <keyword>trust\%{no_method_suffix}</keyword>
+      <keyword>trap\%{no_method_suffix}</keyword>
+      <keyword>trace_var\%{no_method_suffix}</keyword>
+      <keyword>to_s\%{no_method_suffix}</keyword>
+      <keyword>to_enum\%{no_method_suffix}</keyword>
+      <keyword>throw\%{no_method_suffix}</keyword>
+      <keyword>test\%{no_method_suffix}</keyword>
+      <keyword>tap\%{no_method_suffix}</keyword>
+      <keyword>tainted\?</keyword>
+      <keyword>taint\%{no_method_suffix}</keyword>
+      <keyword>system\%{no_method_suffix}</keyword>
+      <keyword>syscall\%{no_method_suffix}</keyword>
+      <keyword>superclass\%{no_method_suffix}</keyword>
+      <keyword>srand\%{no_method_suffix}</keyword>
+      <keyword>sprintf\%{no_method_suffix}</keyword>
+      <keyword>spawn\%{no_method_suffix}</keyword>
+      <keyword>sleep\%{no_method_suffix}</keyword>
+      <keyword>singleton_methods\%{no_method_suffix}</keyword>
+      <keyword>singleton_method_undefined\%{no_method_suffix}</keyword>
+      <keyword>singleton_method_removed\%{no_method_suffix}</keyword>
+      <keyword>singleton_method_added\%{no_method_suffix}</keyword>
+      <keyword>singleton_class\%{no_method_suffix}</keyword>
+      <keyword>set_trace_func\%{no_method_suffix}</keyword>
+      <keyword>send\%{no_method_suffix}</keyword>
+      <keyword>select\%{no_method_suffix}</keyword>
+      <keyword>respond_to_missing\?</keyword>
+      <keyword>respond_to\?</keyword>
+      <keyword>require_relative\%{no_method_suffix}</keyword>
+      <keyword>require\%{no_method_suffix}</keyword>
+      <keyword>remove_method\%{no_method_suffix}</keyword>
+      <keyword>remove_instance_variable\%{no_method_suffix}</keyword>
+      <keyword>remove_const\%{no_method_suffix}</keyword>
+      <keyword>remove_class_variable\%{no_method_suffix}</keyword>
+      <keyword>readlines\%{no_method_suffix}</keyword>
+      <keyword>readline\%{no_method_suffix}</keyword>
+      <keyword>rand\%{no_method_suffix}</keyword>
+      <keyword>raise\%{no_method_suffix}</keyword>
+      <keyword>puts\%{no_method_suffix}</keyword>
+      <keyword>putc\%{no_method_suffix}</keyword>
+      <keyword>public_send\%{no_method_suffix}</keyword>
+      <keyword>public_methods\%{no_method_suffix}</keyword>
+      <keyword>public_method_defined\?</keyword>
+      <keyword>public_method\%{no_method_suffix}</keyword>
+      <keyword>public_instance_methods\%{no_method_suffix}</keyword>
+      <keyword>public_instance_method\%{no_method_suffix}</keyword>
+      <keyword>public_constant\%{no_method_suffix}</keyword>
+      <keyword>public_class_method\%{no_method_suffix}</keyword>
+      <keyword>public\%{no_method_suffix}</keyword>
+      <keyword>protected_methods\%{no_method_suffix}</keyword>
+      <keyword>protected_method_defined\?</keyword>
+      <keyword>protected_instance_methods\%{no_method_suffix}</keyword>
+      <keyword>protected\%{no_method_suffix}</keyword>
+      <keyword>proc\%{no_method_suffix}</keyword>
+      <keyword>private_methods\%{no_method_suffix}</keyword>
+      <keyword>private_method_defined\?</keyword>
+      <keyword>private_instance_methods\%{no_method_suffix}</keyword>
+      <keyword>private_constant\%{no_method_suffix}</keyword>
+      <keyword>private_class_method\%{no_method_suffix}</keyword>
+      <keyword>private\%{no_method_suffix}</keyword>
+      <keyword>printf\%{no_method_suffix}</keyword>
+      <keyword>print\%{no_method_suffix}</keyword>
+      <keyword>p\%{no_method_suffix}</keyword>
+      <keyword>open\%{no_method_suffix}</keyword>
+      <keyword>object_id\%{no_method_suffix}</keyword>
+      <keyword>nil\?</keyword>
+      <keyword>new\%{no_method_suffix}</keyword>
+      <keyword>nesting\%{no_method_suffix}</keyword>
+      <keyword>name\%{no_method_suffix}</keyword>
+      <keyword>module_function\%{no_method_suffix}</keyword>
+      <keyword>module_exec\%{no_method_suffix}</keyword>
+      <keyword>module_eval\%{no_method_suffix}</keyword>
+      <keyword>methods\%{no_method_suffix}</keyword>
+      <keyword>method_undefined\%{no_method_suffix}</keyword>
+      <keyword>method_removed\%{no_method_suffix}</keyword>
+      <keyword>method_missing\%{no_method_suffix}</keyword>
+      <keyword>method_defined\?</keyword>
+      <keyword>method_added\%{no_method_suffix}</keyword>
+      <keyword>method\%{no_method_suffix}</keyword>
+      <keyword>loop\%{no_method_suffix}</keyword>
+      <keyword>local_variables\%{no_method_suffix}</keyword>
+      <keyword>load\%{no_method_suffix}</keyword>
+      <keyword>lambda\%{no_method_suffix}</keyword>
+      <keyword>kind_of\?</keyword>
+      <keyword>iterator\?</keyword>
+      <keyword>is_a\?</keyword>
+      <keyword>instance_variables\%{no_method_suffix}</keyword>
+      <keyword>instance_variable_set\%{no_method_suffix}</keyword>
+      <keyword>instance_variable_get\%{no_method_suffix}</keyword>
+      <keyword>instance_variable_defined\?</keyword>
+      <keyword>instance_of\?</keyword>
+      <keyword>instance_methods\%{no_method_suffix}</keyword>
+      <keyword>instance_method\%{no_method_suffix}</keyword>
+      <keyword>instance_exec\%{no_method_suffix}</keyword>
+      <keyword>instance_eval\%{no_method_suffix}</keyword>
+      <keyword>inspect\%{no_method_suffix}</keyword>
+      <keyword>initialize_dup\%{no_method_suffix}</keyword>
+      <keyword>initialize_copy\%{no_method_suffix}</keyword>
+      <keyword>initialize_clone\%{no_method_suffix}</keyword>
+      <keyword>initialize\%{no_method_suffix}</keyword>
+      <keyword>included_modules\%{no_method_suffix}</keyword>
+      <keyword>included\%{no_method_suffix}</keyword>
+      <keyword>include\?</keyword>
+      <keyword>include\%{no_method_suffix}</keyword>
+      <keyword>hash\%{no_method_suffix}</keyword>
+      <keyword>global_variables\%{no_method_suffix}</keyword>
+      <keyword>gets\%{no_method_suffix}</keyword>
+      <keyword>gem_original_require\%{no_method_suffix}</keyword>
+      <keyword>gem\%{no_method_suffix}</keyword>
+      <keyword>frozen\?</keyword>
+      <keyword>freeze\%{no_method_suffix}</keyword>
+      <keyword>format\%{no_method_suffix}</keyword>
+      <keyword>fork\%{no_method_suffix}</keyword>
+      <keyword>fail\%{no_method_suffix}</keyword>
+      <keyword>extended\%{no_method_suffix}</keyword>
+      <keyword>extend_object\%{no_method_suffix}</keyword>
+      <keyword>extend\%{no_method_suffix}</keyword>
+      <keyword>exit\%{no_method_suffix}</keyword>
+      <keyword>exit!</keyword>
+      <keyword>exec\%{no_method_suffix}</keyword>
+      <keyword>eval\%{no_method_suffix}</keyword>
+      <keyword>equal\?</keyword>
+      <keyword>eql\?</keyword>
+      <keyword>enum_for\%{no_method_suffix}</keyword>
+      <keyword>dup\%{no_method_suffix}</keyword>
+      <keyword>display\%{no_method_suffix}</keyword>
+      <keyword>define_singleton_method\%{no_method_suffix}</keyword>
+      <keyword>define_method\%{no_method_suffix}</keyword>
+      <keyword>constants\%{no_method_suffix}</keyword>
+      <keyword>const_set\%{no_method_suffix}</keyword>
+      <keyword>const_missing\%{no_method_suffix}</keyword>
+      <keyword>const_get\%{no_method_suffix}</keyword>
+      <keyword>const_defined\?</keyword>
+      <keyword>clone\%{no_method_suffix}</keyword>
+      <keyword>class_variables\%{no_method_suffix}</keyword>
+      <keyword>class_variable_set\%{no_method_suffix}</keyword>
+      <keyword>class_variable_get\%{no_method_suffix}</keyword>
+      <keyword>class_variable_defined\?</keyword>
+      <keyword>class_exec\%{no_method_suffix}</keyword>
+      <keyword>class_eval\%{no_method_suffix}</keyword>
+      <keyword>class\%{no_method_suffix}</keyword>
+      <keyword>catch\%{no_method_suffix}</keyword>
+      <keyword>caller\%{no_method_suffix}</keyword>
+      <keyword>block_given\?</keyword>
+      <keyword>binding\%{no_method_suffix}</keyword>
+      <keyword>autoload\?</keyword>
+      <keyword>autoload\%{no_method_suffix}</keyword>
+      <keyword>attr_writer\%{no_method_suffix}</keyword>
+      <keyword>attr_reader\%{no_method_suffix}</keyword>
+      <keyword>attr_accessor\%{no_method_suffix}</keyword>
+      <keyword>attr\%{no_method_suffix}</keyword>
+      <keyword>at_exit\%{no_method_suffix}</keyword>
+      <keyword>append_features\%{no_method_suffix}</keyword>
+      <keyword>ancestors\%{no_method_suffix}</keyword>
+      <keyword>allocate\%{no_method_suffix}</keyword>
+      <keyword>alias_method\%{no_method_suffix}</keyword>
+      <keyword>abort\%{no_method_suffix}</keyword>
+      <keyword>__send__\%{no_method_suffix}</keyword>
+      <keyword>__method__\%{no_method_suffix}</keyword>
+      <keyword>__id__\%{no_method_suffix}</keyword>
+      <keyword>__callee__\%{no_method_suffix}</keyword>
+      <keyword>String(?=\()</keyword>
+      <keyword>Rational(?=\()</keyword>
+      <keyword>Integer(?=\()</keyword>
+      <keyword>Float(?=\()</keyword>
+      <keyword>Complex(?=\()</keyword>
+      <keyword>Array(?=\()</keyword>
+    </context>
+
+    <context id="important-constants" style-ref="important-constant" extend-parent="false">
+      <prefix>(?&lt;!\%{alnum}::)</prefix><!-- fails on spaces or non alnum -->
+      <keyword>ZeroDivisionError</keyword>
+      <keyword>UnboundMethod</keyword>
+      <keyword>TypeError</keyword>
+      <keyword>TrueClass</keyword>
+      <keyword>Time</keyword>
+      <keyword>ThreadGroup</keyword>
+      <keyword>ThreadError</keyword>
+      <keyword>Thread</keyword>
+      <keyword>TRUE</keyword>
+      <keyword>TOPLEVEL_BINDING</keyword>
+      <keyword>SystemStackError</keyword>
+      <keyword>SystemExit</keyword>
+      <keyword>SystemCallError</keyword>
+      <keyword>SyntaxError</keyword>
+      <keyword>Symbol</keyword>
+      <keyword>Struct</keyword>
+      <keyword>String</keyword>
+      <keyword>StopIteration</keyword>
+      <keyword>StandardError</keyword>
+      <keyword>SignalException</keyword>
+      <keyword>Signal</keyword>
+      <keyword>SecurityError</keyword>
+      <keyword>ScriptError</keyword>
+      <keyword>STDOUT</keyword>
+      <keyword>STDIN</keyword>
+      <keyword>STDERR</keyword>
+      <keyword>SCRIPT_LINES__</keyword>
+      <keyword>RuntimeError</keyword>
+      <keyword>RubyVM</keyword>
+      <keyword>RegexpError</keyword>
+      <keyword>Regexp</keyword>
+      <keyword>RbConfig</keyword>
+      <keyword>Rational</keyword>
+      <keyword>RangeError</keyword>
+      <keyword>Range</keyword>
+      <keyword>Random</keyword>
+      <keyword>RUBY_VERSION</keyword>
+      <keyword>RUBY_REVISION</keyword>
+      <keyword>RUBY_RELEASE_DATE</keyword>
+      <keyword>RUBY_PLATFORM</keyword>
+      <keyword>RUBY_PATCHLEVEL</keyword>
+      <keyword>RUBY_ENGINE</keyword>
+      <keyword>RUBY_DESCRIPTION</keyword>
+      <keyword>RUBY_COPYRIGHT</keyword>
+      <keyword>Process</keyword>
+      <keyword>Proc</keyword>
+      <keyword>ObjectSpace</keyword>
+      <keyword>Object</keyword>
+      <keyword>Numeric</keyword>
+      <keyword>NotImplementedError</keyword>
+      <keyword>NoMethodError</keyword>
+      <keyword>NoMemoryError</keyword>
+      <keyword>NilClass</keyword>
+      <keyword>NameError</keyword>
+      <keyword>NIL</keyword>
+      <keyword>Mutex</keyword>
+      <keyword>Module</keyword>
+      <keyword>Method</keyword>
+      <keyword>Math</keyword>
+      <keyword>MatchData</keyword>
+      <keyword>Marshal</keyword>
+      <keyword>LocalJumpError</keyword>
+      <keyword>LoadError</keyword>
+      <keyword>KeyError</keyword>
+      <keyword>Kernel</keyword>
+      <keyword>Interrupt</keyword>
+      <keyword>Integer</keyword>
+      <keyword>IndexError</keyword>
+      <keyword>IOError</keyword>
+      <keyword>IO</keyword>
+      <keyword>Hash</keyword>
+      <keyword>Gem</keyword>
+      <keyword>GC</keyword>
+      <keyword>FloatDomainError</keyword>
+      <keyword>Float</keyword>
+      <keyword>Fixnum</keyword>
+      <keyword>FileTest</keyword>
+      <keyword>File</keyword>
+      <keyword>FiberError</keyword>
+      <keyword>Fiber</keyword>
+      <keyword>FalseClass</keyword>
+      <keyword>FALSE</keyword>
+      <keyword>Exception</keyword>
+      <keyword>Errno</keyword>
+      <keyword>Enumerator</keyword>
+      <keyword>Enumerable</keyword>
+      <keyword>EncodingError</keyword>
+      <keyword>Encoding</keyword>
+      <keyword>EOFError</keyword>
+      <keyword>ENV</keyword>
+      <keyword>Dir</keyword>
+      <keyword>Deprecate</keyword>
+      <keyword>Data</keyword>
+      <keyword>DATA</keyword>
+      <keyword>Config</keyword>
+      <keyword>Complex</keyword>
+      <keyword>Comparable</keyword>
+      <keyword>Class</keyword>
+      <keyword>CROSS_COMPILING</keyword>
+      <keyword>Binding</keyword>
+      <keyword>Bignum</keyword>
+      <keyword>BasicObject</keyword>
+      <keyword>Array</keyword>
+      <keyword>ArgumentError</keyword>
+      <keyword>ARGV</keyword>
+      <keyword>ARGF</keyword>
+    </context>
+
+    <define-regex id="special-variables-1-char">[;@!~&amp;`'+=,/\\_&gt;&lt;.*?$:"0-9]</define-regex>
+    <define-regex id="special-variables-2-chars">-[FK0iIvwWdpla]</define-regex>
+
+    <context id="special-variables" style-ref="special-variable">
+      <match extended="true">
+        \$( \%{special-variables-1-char}
+          | \%{special-variables-2-chars}
+          | SAFE
+          | KCODE
+          | FILENAME
+          | LOAD_PATH
+          | LOADED_FEATURES
+          | VERBOSE
+          | DEBUG
+          | PROGRAM_NAME
+          | stdin
+          | stdout
+          | stderr
+          | binding ) (?!\%{alnum})
+      </match>
+    </context>
+
+    <define-regex id="method" extended="true">
+      ( \%{alnum}(?&lt;![A-Z0-9:])\%{alnum}*[!?]?
+      | [A-Z]\%{alnum}*[!?]?(?=\()
+      )
+    </define-regex>
+
+    <context id="methods" style-ref="method" extend-parent="false">
+      <match>\%{method}</match>
+    </context>
+
+    <context id="global-variables" style-ref="global-variable">
+      <match>\$\%{alnum}(?&lt;![0-9])\%{alnum}*</match>
+    </context>
+
+    <context id="class-variables" style-ref="class-variable">
+      <match>@@\%{alnum}(?&lt;![0-9])\%{alnum}*</match>
+    </context>
+
+    <context id="instance-variables" style-ref="instance-variable">
+      <match>@\%{alnum}(?&lt;![0-9])\%{alnum}*</match>
+    </context>
+
+    <context id="constants" style-ref="constant" extend-parent="false">
+      <match>[A-Z]\%{alnum}*</match>
+    </context>
+
+    <define-regex id="n">\d(_?\d)*</define-regex>
+    <define-regex id="n_pre">(?&lt;!\w)</define-regex>
+    <define-regex id="n_suf">(?!\w)</define-regex>
+
+    <context id="float" style-ref="float">
+      <match>\%{n_pre}(\%{n}\.\%{n}|\%{n}(\.\%{n})?[eE][+-]?\%{n})\%{n_suf}</match>
+    </context>
+
+    <context id="integer" style-ref="integer">
+      <match>\%{n_pre}([1-9](_?[0-9])*|0)\%{n_suf}</match>
+    </context>
+
+    <context id="hex" style-ref="base-n-integer">
+      <match>\%{n_pre}0[xX][0-9A-Fa-f](_?[0-9A-Fa-f])*\%{n_suf}</match>
+    </context>
+
+    <context id="octal" style-ref="base-n-integer">
+      <match>\%{n_pre}0[0-7](_?[0-7])*\%{n_suf}</match>
+    </context>
+
+    <context id="binary" style-ref="base-n-integer">
+      <match>\%{n_pre}0[bB][01](_?[01])*\%{n_suf}</match>
+    </context>
+
+    <context id="special-values">
+      <include>
+        <context id="self" style-ref="self">
+          <prefix>\%{no_method_prefix}</prefix>
+          <suffix>\%{no_method_suffix}</suffix>
+          <keyword>self</keyword>
+        </context>
+
+        <context id="false" style-ref="false">
+          <prefix>\%{no_method_prefix}</prefix>
+          <suffix>\%{no_method_suffix}</suffix>
+          <keyword>false</keyword>
+        </context>
+
+        <context id="true" style-ref="true">
+          <prefix>\%{no_method_prefix}</prefix>
+          <suffix>\%{no_method_suffix}</suffix>
+          <keyword>true</keyword>
+        </context>
+
+        <context id="nil" style-ref="nil">
+          <prefix>\%{no_method_prefix}</prefix>
+          <suffix>\%{no_method_suffix}</suffix>
+          <keyword>nil</keyword>
+        </context>
+
+        <context id="special-values-words" style-ref="special-value">
+          <prefix>\%{no_method_prefix}</prefix>
+          <suffix>\%{no_method_suffix}</suffix>
+          <keyword>__ENCODING__</keyword>
+          <keyword>__FILE__</keyword>
+          <keyword>__LINE__</keyword>
+        </context>
+      </include>
+    </context>
+
+    <context id="block-parameters">
+      <start>(?&lt;=do|\{)\s*(\|)</start>
+      <end>\|</end>
+      <include>
+        <context sub-pattern="1" where="start" style-ref="syntax-char"/>
+        <context sub-pattern="0" where="end"   style-ref="syntax-char"/>
+        <context ref="ruby-end-at-line-end"/>
+      </include>
+    </context>
+
+    <context id="question-mark-string" style-ref="character">
+      <match>(?&lt;![\w\.)\]}])\s*\?((\\[MC]-){1,2}|\\?)\S</match>
+    </context>
+
+    <context id="interpolation" style-ref="string-delimiter">
+      <start>#\{</start>
+      <end>\}</end>
+      <include>
+        <context ref="ruby:*"/>
+      </include>
+    </context>
+
+    <context id="variable-interpolation">
+      <start>(#)(?=[@$])</start>
+      <end>(?!\%{alnum})</end>
+      <include>
+        <context where="start" sub-pattern="1" style-ref="string-delimiter"/>
+        <context ref="class-variables"/>
+        <context ref="instance-variables"/>
+        <context ref="special-variables"/>
+        <context ref="global-variables"/>
+      </include>
+    </context>
+
+    <context id="double-quoted">
+      <include>
+        <context ref="special-chars"/>
+        <context ref="interpolation"/>
+        <context ref="variable-interpolation"/>
+      </include>
+    </context>
+
+    <!-- ruby strings do not end at line end, so we cannot use def:string (parts lifted from perl.lang) -->
+    <!--  'Hello world' -->
+    <context id="double-quoted-string" style-ref="string" class-disabled="no-spell-check" style-inside="true">
+      <start>"</start>
+      <end>"</end>
+      <include>
+        <context style-ref="special-char"><match>\\[\"\\]</match></context>
+        <context ref="double-quoted"/>
+        <context where="start" sub-pattern="0" style-ref="string-delimiter"/>
+        <context where="end" sub-pattern="0" style-ref="string-delimiter"/>
+      </include>
+    </context>
+
+   <!--  %Q{Hello world} %{Hello world} -->
+    <context id="double-quoted-string-curly" style-ref="string">
+      <start>%Q?\{</start>
+      <end>\}</end>
+      <include>
+        <context style-ref="special-char"><match>\\[}\\]</match></context>
+        <context ref="double-quoted"/>
+        <context where="start" sub-pattern="0" style-ref="string-delimiter"/>
+        <context where="end" sub-pattern="0" style-ref="string-delimiter"/>
+      </include>
+    </context>
+
+    <!-- %Q(Hello world) %(Hello world) -->
+    <context id="double-quoted-string-normal" style-ref="string">
+      <start>%Q?\(</start>
+      <end>\)</end>
+      <include>
+        <context style-ref="special-char"><match>\\[)\\]</match></context>
+        <context ref="double-quoted"/>
+        <context where="start" sub-pattern="0" style-ref="string-delimiter"/>
+        <context where="end" sub-pattern="0" style-ref="string-delimiter"/>
+      </include>
+    </context>
+
+    <!-- %Q[Hello world] %[Hello world] -->
+    <context id="double-quoted-string-square" style-ref="string">
+      <start>%Q?\[</start>
+      <end>\]</end>
+      <include>
+        <context style-ref="special-char"><match>\\[\]\\]</match></context>
+        <context ref="double-quoted"/>
+        <context where="start" sub-pattern="0" style-ref="string-delimiter"/>
+        <context where="end" sub-pattern="0" style-ref="string-delimiter"/>
+      </include>
+    </context>
+
+    <!-- %Q<Hello world> %<Hello world> -->
+    <context id="double-quoted-string-angle" style-ref="string">
+      <start>%Q?&lt;</start>
+      <end>&gt;</end>
+      <include>
+        <context style-ref="special-char"><match>\\[&gt;\\]</match></context>
+        <context ref="double-quoted"/>
+        <context where="start" sub-pattern="0" style-ref="string-delimiter"/>
+        <context where="end" sub-pattern="0" style-ref="string-delimiter"/>
+      </include>
+    </context>
+
+    <!-- %Q-Hello world- %-Hello world- %+hello world+ and so on... -->
+    <context id="double-quoted-string-generic" style-ref="string">
+      <start>%Q?([[:print:]])(?&lt;![[:alnum:]])</start>
+      <end>\%{1@start}</end>
+      <include>
+        <!--context style-ref="special-char"><match>\\[\%{1@start}\\]</match></context-->
+        <context ref="double-quoted"/>
+        <context where="start" sub-pattern="0" style-ref="string-delimiter"/>
+        <context where="end" sub-pattern="0" style-ref="string-delimiter"/>
+      </include>
+    </context>
+
+    <!-- 'Hello world' -->
+    <context id="single-quoted-string" style-ref="string" class-disabled="no-spell-check">
+      <start>'</start>
+      <end>'</end>
+      <include>
+        <context style-ref="special-char"><match>\\['\\]</match></context>
+        <context where="start" sub-pattern="0" style-ref="string-delimiter"/>
+        <context where="end" sub-pattern="0" style-ref="string-delimiter"/>
+      </include>
+    </context>
+
+    <!-- %q{Hello world} -->
+    <context id="single-quoted-string-curly" style-ref="string">
+      <start>%q\{</start>
+      <end>\}</end>
+      <include>
+        <context style-ref="special-char"><match>\\[}\\]</match></context>
+        <context where="start" sub-pattern="0" style-ref="string-delimiter"/>
+        <context where="end" sub-pattern="0" style-ref="string-delimiter"/>
+      </include>
+    </context>
+
+    <!-- %q(Hello world) -->
+    <context id="single-quoted-string-normal" style-ref="string">
+      <start>%q\(</start>
+      <end>\)</end>
+      <include>
+        <context style-ref="special-char"><match>\\[)\\]</match></context>
+        <context where="start" sub-pattern="0" style-ref="string-delimiter"/>
+        <context where="end" sub-pattern="0" style-ref="string-delimiter"/>
+      </include>
+    </context>
+
+    <!-- %q[Hello world] -->
+    <context id="single-quoted-string-square" style-ref="string">
+      <start>%q\[</start>
+      <end>\]</end>
+      <include><context style-ref="special-char"><match>\\[\]\\]</match></context>
+        <context where="start" sub-pattern="0" style-ref="string-delimiter"/>
+        <context where="end" sub-pattern="0" style-ref="string-delimiter"/>
+      </include>
+    </context>
+
+    <!-- %q<Hello world> -->
+    <context id="single-quoted-string-angle" style-ref="string">
+      <start>%q&lt;</start>
+      <end>&gt;</end>
+      <include>
+        <context style-ref="special-char"><match>\\[%gt;\\]</match></context>
+        <context where="start" sub-pattern="0" style-ref="string-delimiter"/>
+        <context where="end" sub-pattern="0" style-ref="string-delimiter"/>
+      </include>
+    </context>
+
+    <!-- %q-Hello world- %q+Hello world+ %q*Hello world* and so on... -->
+    <context id="single-quoted-string-generic" style-ref="string">
+      <start>%q([[:print:]])(?&lt;![[:alnum:]])</start>
+      <end>\%{1@start}</end>
+      <include>
+        <!--context style-ref="special-char"><match>\\[\%{1@start}\\]</match></context-->
+        <context where="start" sub-pattern="0" style-ref="string-delimiter"/>
+        <context where="end" sub-pattern="0" style-ref="string-delimiter"/>
+      </include>
+    </context>
+
+    <!-- Arrays of strings
+         %W{Array of #{interpolated} strings} -->
+    <context id="double-quoted-word-array-curly" style-ref="string">
+      <start>%W\{</start>
+      <end>\}</end>
+      <include>
+        <context style-ref="special-char"><match>\\[}\\]</match></context>
+        <context ref="double-quoted"/>
+        <context where="start" sub-pattern="0" style-ref="collection"/>
+        <context where="end" sub-pattern="0" style-ref="collection"/>
+      </include>
+    </context>
+
+    <!-- %W(Array of #{interpolated} strings) -->
+    <context id="double-quoted-word-array-normal" style-ref="string">
+      <start>%W\(</start>
+      <end>\)</end>
+      <include>
+        <context style-ref="special-char"><match>\\[)\\]</match></context>
+        <context ref="double-quoted"/>
+        <context where="start" sub-pattern="0" style-ref="collection"/>
+        <context where="end" sub-pattern="0" style-ref="collection"/>
+      </include>
+    </context>
+
+    <!-- %W[Array of #{interpolated} strings] -->
+    <context id="double-quoted-word-array-square" style-ref="string">
+      <start>%W\[</start>
+      <end>\]</end>
+      <include>
+        <context style-ref="special-char"><match>\\[\]\\]</match></context>
+        <context ref="double-quoted"/>
+        <context where="start" sub-pattern="0" style-ref="collection"/>
+        <context where="end" sub-pattern="0" style-ref="collection"/>
+      </include>
+    </context>
+
+    <!-- %W<Array of #{interpolated} strings> -->
+    <context id="double-quoted-word-array-angle" style-ref="string">
+      <start>%W&lt;</start>
+      <end>&gt;</end>
+      <include>
+        <context style-ref="special-char"><match>\\[&gt;\\]</match></context>
+        <context ref="double-quoted"/>
+        <context where="start" sub-pattern="0" style-ref="collection"/>
+        <context where="end" sub-pattern="0" style-ref="collection"/>
+      </include>
+    </context>
+
+    <!-- %W-Array of #{interpolated} strings-
+         %W+Array of #{interpolated} strings+
+         %W*Array of #{interpolated} strings* and so on... -->
+    <context id="double-quoted-word-array-generic" style-ref="string">
+      <start>%W([[:print:]])(?&lt;![[:alnum:]])</start>
+      <end>\%{1@start}</end>
+      <include>
+        <!--context style-ref="special-char"><match>\\[\%{1@start}\\]</match></context-->
+        <context ref="double-quoted"/>
+        <context where="start" sub-pattern="0" style-ref="collection"/>
+        <context where="end" sub-pattern="0" style-ref="collection"/>
+      </include>
+    </context>
+
+    <!-- %w{Array of strings} -->
+    <context id="single-quoted-word-array-curly" style-ref="string">
+      <start>%w\{</start>
+      <end>\}</end>
+      <include>
+        <context style-ref="special-char"><match>\\[}\\]</match></context>
+        <context where="start" sub-pattern="0" style-ref="collection"/>
+        <context where="end" sub-pattern="0" style-ref="collection"/>
+      </include>
+    </context>
+
+    <!-- %w(Array of strings) -->
+    <context id="single-quoted-word-array-normal" style-ref="string">
+      <start>%w\(</start>
+      <end>\)</end>
+      <include>
+        <context style-ref="special-char"><match>\\[)\\]</match></context>
+        <context where="start" sub-pattern="0" style-ref="collection"/>
+        <context where="end" sub-pattern="0" style-ref="collection"/>
+      </include>
+    </context>
+
+    <!-- %w[Array of strings] -->
+    <context id="single-quoted-word-array-square" style-ref="string">
+      <start>%w\[</start>
+      <end>\]</end>
+      <include>
+        <context style-ref="special-char"><match>\\[\]\\]</match></context>
+        <context where="start" sub-pattern="0" style-ref="collection"/>
+        <context where="end" sub-pattern="0" style-ref="collection"/>
+      </include>
+    </context>
+
+    <!-- %w<Array of strings> -->
+    <context id="single-quoted-word-array-angle" style-ref="string">
+      <start>%w&lt;</start>
+      <end>&gt;</end>
+      <include>
+        <context style-ref="special-char"><match>\\[&gt;\\]</match></context>
+        <context where="start" sub-pattern="0" style-ref="collection"/>
+        <context where="end" sub-pattern="0" style-ref="collection"/>
+      </include>
+    </context>
+
+    <!-- %w-Array of strings- %w+Array of strings+ %w*Array of strings* and so on... -->
+    <context id="single-quoted-word-array-generic" style-ref="string">
+      <start>%w([[:print:]])(?&lt;![[:alnum:]])</start>
+      <end>\%{1@start}</end>
+      <include>
+        <!--context style-ref="special-char"><match>\\[\%{1@start}\\]</match></context-->
+        <context where="start" sub-pattern="0" style-ref="collection"/>
+        <context where="end" sub-pattern="0" style-ref="collection"/>
+      </include>
+    </context>
+
+    <context id="backtick-quoted-string" style-ref="system" extend-parent="false">
+      <start>`</start>
+      <end>`</end>
+      <include>
+        <context style-ref="special-char"><match>\\[`\\]</match></context>
+        <context ref="double-quoted"/>
+        <context where="start" sub-pattern="0" style-ref="system-delimiter"/>
+        <context where="end" sub-pattern="0" style-ref="system-delimiter"/>
+      </include>
+    </context>
+
+    <context id="backtick-quoted-string-curly" style-ref="system">
+      <start>%x\{</start>
+      <end>\}</end>
+      <include>
+        <context style-ref="special-char"><match>\\[}\\]</match></context>
+        <context ref="double-quoted"/>
+        <context where="start" sub-pattern="0" style-ref="system-delimiter"/>
+        <context where="end" sub-pattern="0" style-ref="system-delimiter"/>
+      </include>
+    </context>
+
+    <context id="backtick-quoted-string-normal" style-ref="system">
+      <start>%x\(</start>
+      <end>\)</end>
+      <include><context style-ref="special-char"><match>\\[)\\]</match></context>
+      <context ref="double-quoted"/><context where="start" sub-pattern="0" style-ref="system-delimiter"/>
+      <context where="end" sub-pattern="0" style-ref="system-delimiter"/></include>
+    </context>
+
+    <context id="backtick-quoted-string-square" style-ref="system">
+      <start>%x\[</start>
+      <end>\]</end>
+      <include>
+        <context style-ref="special-char"><match>\\[\]\\]</match></context>
+        <context ref="double-quoted"/>
+        <context where="start" sub-pattern="0" style-ref="system-delimiter"/>
+        <context where="end" sub-pattern="0" style-ref="system-delimiter"/>
+      </include>
+    </context>
+
+    <context id="backtick-quoted-string-angle" style-ref="system">
+      <start>%x&lt;</start>
+      <end>&gt;</end>
+      <include>
+        <context style-ref="special-char"><match>\\[&gt;\\]</match></context>
+        <context ref="double-quoted"/>
+        <context where="start" sub-pattern="0" style-ref="system-delimiter"/>
+        <context where="end" sub-pattern="0" style-ref="system-delimiter"/>
+      </include>
+    </context>
+
+    <context id="backtick-quoted-string-generic" style-ref="system">
+      <start>%x([[:print:]])(?&lt;![[:alnum:]])</start>
+      <end>\%{1@start}</end>
+      <include>
+        <!--context style-ref="special-char"><match>\\[\%{1@start}\\]</match></context-->
+        <context ref="double-quoted"/>
+        <context where="start" sub-pattern="0" style-ref="system-delimiter"/>
+        <context where="end" sub-pattern="0" style-ref="system-delimiter"/>
+      </include>
+    </context>
+
+    <define-regex id="start-heredoc">([^a-zA-Z0-9\s\]\)&gt;}]|^)\s*(&lt;&lt;)</define-regex>
+
+    <context id="heredoc-string" style-ref="string">
+      <start>\%{start-heredoc}((\w+))</start>
+      <end>^\%{4@start}$</end>
+      <include>
+        <context ref="ruby-end-at-line-end"/>
+        <context ref="double-quoted"/>
+        <context where="start" sub-pattern="1" style-ref="operator"/>
+        <context where="start" sub-pattern="2" style-ref="string-delimiter"/>
+        <context where="start" sub-pattern="3" style-ref="string-delimiter"/>
+        <context where="end" sub-pattern="0" style-ref="string-delimiter"/>
+      </include>
+    </context>
+
+    <context id="heredoc-indented-string" style-ref="string">
+      <start>\%{start-heredoc}(-(\w+))</start>
+      <end>^\s*\%{4@start}$</end>
+      <include>
+        <context ref="ruby-end-at-line-end"/>
+        <context ref="double-quoted"/>
+        <context where="start" sub-pattern="1" style-ref="operator"/>
+        <context where="start" sub-pattern="2" style-ref="string-delimiter"/>
+        <context where="start" sub-pattern="3" style-ref="string-delimiter"/>
+        <context where="end" sub-pattern="0" style-ref="string-delimiter"/>
+      </include>
+    </context>
+
+    <context id="heredoc-single-quoted-string" style-ref="string">
+      <start>\%{start-heredoc}('(\w+)')</start>
+      <end>^\%{4@start}$</end>
+      <include>
+        <context ref="ruby-end-at-line-end"/>
+        <context where="start" sub-pattern="1" style-ref="operator"/>
+        <context where="start" sub-pattern="2" style-ref="string-delimiter"/>
+        <context where="start" sub-pattern="3" style-ref="string-delimiter"/>
+        <context where="end" sub-pattern="0" style-ref="string-delimiter"/>
+      </include>
+    </context>
+
+    <context id="heredoc-double-quoted-string" style-ref="string">
+      <start>\%{start-heredoc}("(\w+)")</start>
+      <end>^\%{4@start}$</end>
+      <include>
+        <context ref="ruby-end-at-line-end"/>
+        <context ref="double-quoted"/>
+        <context where="start" sub-pattern="1" style-ref="operator"/>
+        <context where="start" sub-pattern="2" style-ref="string-delimiter"/>
+        <context where="start" sub-pattern="3" style-ref="string-delimiter"/>
+        <context where="end" sub-pattern="0" style-ref="string-delimiter"/>
+      </include>
+    </context>
+    
+    <context id="heredoc-backtick-quoted-string" style-ref="system">
+      <start>\%{start-heredoc}(`(\w+)`)</start>
+      <end>^\%{4@start}$</end>
+      <include>
+        <context ref="ruby-end-at-line-end"/>
+        <context ref="double-quoted"/>
+        <context where="start" sub-pattern="1" style-ref="operator"/>
+        <context where="start" sub-pattern="2" style-ref="system-delimiter"/>
+        <context where="start" sub-pattern="3" style-ref="system-delimiter"/>
+        <context where="end" sub-pattern="0" style-ref="system-delimiter"/>
+      </include>
+    </context>
+    
+    <context id="heredoc-single-quoted-indented-string" style-ref="string">
+      <start>\%{start-heredoc}(-'(\w+)')</start>
+      <end>^\s*\%{4@start}$</end>
+      <include>
+        <context ref="ruby-end-at-line-end"/>
+        <context where="start" sub-pattern="1" style-ref="operator"/>
+        <context where="start" sub-pattern="2" style-ref="string-delimiter"/>
+        <context where="start" sub-pattern="3" style-ref="string-delimiter"/>
+        <context where="end" sub-pattern="0" style-ref="string-delimiter"/>
+      </include>
+    </context>
+
+    <context id="heredoc-double-quoted-indented-string" style-ref="string">
+      <start>\%{start-heredoc}(-"(\w+)")</start>
+      <end>^\s*\%{4@start}$</end>
+      <include>
+        <context ref="ruby-end-at-line-end"/>
+        <context where="start" sub-pattern="1" style-ref="operator"/>
+        <context where="start" sub-pattern="2" style-ref="string-delimiter"/>
+        <context where="start" sub-pattern="3" style-ref="string-delimiter"/>
+        <context where="end" sub-pattern="0" style-ref="string-delimiter"/>
+      </include>
+    </context>
+    
+    <context id="heredoc-backtick-quoted-indented-string" style-ref="system">
+      <start>\%{start-heredoc}(-`(\w+)`)</start>
+      <end>^\s*\%{4@start}$</end>
+      <include>
+        <context ref="ruby-end-at-line-end"/>
+        <context where="start" sub-pattern="1" style-ref="operator"/>
+        <context where="start" sub-pattern="2" style-ref="system-delimiter"/>
+        <context where="start" sub-pattern="3" style-ref="system-delimiter"/>
+        <context where="end" sub-pattern="0" style-ref="system-delimiter"/>
+      </include>
+    </context>
+    
+    <define-regex id="regex-options">([mixo]*[neus]?[mixo]*)</define-regex>
+
+    <context id="regex" style-ref="regex">
+      <start extended="true">
+        \/
+        (?=
+          ([^/\\]*(\\.))*
+          [^/]*
+          \/\%{regex-options}
+        )</start>
+      <end>(\/)\%{regex-options}</end>
+      <include>
+        <context style-ref="special-char"><match>\\[/\\]</match></context>
+        <context ref="double-quoted"/>
+        <context where="start" sub-pattern="0" style-ref="regex-delimiter"/>
+        <context where="end" sub-pattern="1" style-ref="regex-delimiter"/>
+        <context where="end" sub-pattern="2" style-ref="regex-options"/>
+      </include>
+    </context>
+
+    <context id="regex-curly" style-ref="regex">
+      <start>%r\{</start>
+      <end>(\})%{regex-options}</end>
+      <include>
+        <context style-ref="special-char"><match>\\[/\\]</match></context>
+        <context ref="double-quoted"/>
+        <context where="start" sub-pattern="0" style-ref="regex-delimiter"/>
+        <context where="end" sub-pattern="1" style-ref="regex-delimiter"/>
+        <context where="end" sub-pattern="2" style-ref="regex-options"/>
+      </include>
+    </context>
+
+    <context id="regex-normal" style-ref="regex">
+      <start>%r\(</start>
+      <end>(\))%{regex-options}</end>
+      <include>
+        <context style-ref="special-char"><match>\\[)\\]</match></context>
+        <context ref="double-quoted"/>
+        <context where="start" sub-pattern="0" style-ref="regex-delimiter"/>
+        <context where="end" sub-pattern="1" style-ref="regex-delimiter"/>
+        <context where="end" sub-pattern="2" style-ref="regex-options"/>
+      </include>
+    </context>
+
+    <context id="regex-square" style-ref="regex">
+      <start>%r\[</start>
+      <end>(\])%{regex-options}</end>
+      <include>
+        <context style-ref="special-char"><match>\\[\]\\]</match></context>
+        <context ref="double-quoted"/>
+        <context where="start" sub-pattern="0" style-ref="regex-delimiter"/>
+        <context where="end" sub-pattern="1" style-ref="regex-delimiter"/>
+        <context where="end" sub-pattern="2" style-ref="regex-options"/>
+      </include>
+    </context>
+
+    <context id="regex-angle" style-ref="regex">
+      <start>%r&lt;</start>
+      <end>(&gt;)\%{regex-options}</end>
+      <include>
+        <context style-ref="special-char"><match>\\[&gt;\\]</match></context>
+        <context ref="double-quoted"/>
+        <context where="start" sub-pattern="0" style-ref="regex-delimiter"/>
+        <context where="end" sub-pattern="1" style-ref="regex-delimiter"/>
+        <context where="end" sub-pattern="2" style-ref="regex-options"/>
+      </include>
+    </context>
+
+    <context id="regex-generic" style-ref="regex">
+      <start>%r([[:print:]])(?&lt;![[:alnum:]])</start>
+      <end>(\%{1@start})\%{regex-options}</end>
+      <include>
+        <!--context style-ref="special-char"><match>\\[\%{1@start}\\]</match></context-->
+        <context ref="double-quoted"/>
+        <context where="start" sub-pattern="0" style-ref="regex-delimiter"/>
+        <context where="end" sub-pattern="1" style-ref="regex-delimiter"/>
+        <context where="end" sub-pattern="2" style-ref="regex-options"/>
+     </include>
+     </context>
+
+     <context id="symbol" style-ref="symbol">
+       <start extended="true">
+         (?&lt;!:)(:)
+         ( \$ \%{special-variables-1-char}
+         | \$ \%{special-variables-2-chars}
+         | (?:\%{alnum}|\$|@@?) (?&lt;![0-9]) \%{alnum}* [?!=]?
+         | &lt;=&gt; | &lt;= | &gt;= | &lt;&lt;? | &gt;&gt;? | != | [!=]~ | ===? | \[\]=? | \*\*? | [+-]@?
+         | [!|~\^&amp;]
+         )
+      </start>
+      <end></end>
+      <include>
+        <context where="start" sub-pattern="1" style-ref="symbol-delimiter"/>
+      </include>
+    </context>
+
+    <context id="ternary-operators">
+      <start>\?</start>
+      <end>:</end>
+      <include>
+        <context where="start" sub-pattern="0" style-ref="operator"/>
+        <context where="end"   sub-pattern="0" style-ref="operator"/>
+        <context ref="ruby:*"/>
+      </include>
+    </context>
+
+    <context id="hash-symbols" style-ref="symbol" extend-parent="false">
+      <start extended="true">
+        (?=\%{alnum}+:) \%{alnum} (?&lt;![0-9]) \%{alnum}* [?!=]? (:) (?!:)
+      </start>
+      <end></end>
+      <include>
+        <context where="start" sub-pattern="1" style-ref="symbol-delimiter"/>
+      </include>
+    </context>
+
+    <context id="single-quoted-symbol" style-ref="symbol">
+      <start>:'</start>
+      <end>'</end>
+      <include>
+        <context style-ref="special-char"><match>\\[\'\\]</match></context>
+        <context where="start" sub-pattern="0" style-ref="symbol-delimiter"/>
+        <context where="end"   sub-pattern="0" style-ref="symbol-delimiter"/>
+      </include>
+    </context>
+
+    <context id="double-quoted-symbol" style-ref="symbol">
+      <start>:"</start>
+      <end>"</end>
+      <include>
+        <context style-ref="special-char"><match>\\[\"\\]</match></context>
+        <context ref="double-quoted"/>
+        <context where="start" sub-pattern="0" style-ref="symbol-delimiter"/>
+        <context where="end"   sub-pattern="0" style-ref="symbol-delimiter"/>
+      </include>
+    </context>
+    
+        <!-- %s{Hello world} -->
+    <context id="single-quoted-symbol-curly" style-ref="symbol">
+      <start>%s\{</start>
+      <end>\}</end>
+      <include>
+        <context style-ref="special-char"><match>\\[}\\]</match></context>
+        <context where="start" sub-pattern="0" style-ref="symbol-delimiter"/>
+        <context where="end" sub-pattern="0" style-ref="symbol-delimiter"/>
+      </include>
+    </context>
+
+    <!-- %s(Hello world) -->
+    <context id="single-quoted-symbol-normal" style-ref="symbol">
+      <start>%s\(</start>
+      <end>\)</end>
+      <include>
+        <context style-ref="special-char"><match>\\[)\\]</match></context>
+        <context where="start" sub-pattern="0" style-ref="symbol-delimiter"/>
+        <context where="end" sub-pattern="0" style-ref="symbol-delimiter"/>
+      </include>
+    </context>
+
+    <!-- %s[Hello world] -->
+    <context id="single-quoted-symbol-square" style-ref="symbol">
+      <start>%s\[</start>
+      <end>\]</end>
+      <include><context style-ref="special-char"><match>\\[\]\\]</match></context>
+        <context where="start" sub-pattern="0" style-ref="symbol-delimiter"/>
+        <context where="end" sub-pattern="0" style-ref="symbol-delimiter"/>
+      </include>
+    </context>
+
+    <!-- %s<Hello world> -->
+    <context id="single-quoted-symbol-angle" style-ref="symbol">
+      <start>%s&lt;</start>
+      <end>&gt;</end>
+      <include>
+        <context style-ref="special-char"><match>\\[%gt;\\]</match></context>
+        <context where="start" sub-pattern="0" style-ref="symbol-delimiter"/>
+        <context where="end" sub-pattern="0" style-ref="symbol-delimiter"/>
+      </include>
+    </context>
+    
+    <!-- %s-Hello world- %s+Hello world+ %s*Hello world* and so on... -->
+    <context id="single-quoted-symbol-generic" style-ref="symbol">
+      <start>%s([[:print:]])(?&lt;![[:alnum:]])</start>
+      <end>\%{1@start}</end>
+      <include>
+        <!--context style-ref="special-char"><match>\\[\%{1@start}\\]</match></context-->
+        <context where="start" sub-pattern="0" style-ref="symbol-delimiter"/>
+        <context where="end" sub-pattern="0" style-ref="symbol-delimiter"/>
+      </include>
+    </context>
+
+    <define-regex id="definable-operator" extended="true">
+        ===?
+      | &lt;=&gt;
+      | &lt;[&lt;=]?
+      | (?&lt;!=)&gt;[&gt;=]?
+      | =?~
+      | \*\*?
+      | \[\]=?
+      | [+%^!/|&amp;-]
+    </define-regex>
+
+    <context id="function">
+      <start>(?&lt;![\w\.])\b(def)\b\s*</start>
+      <end>(\%{definable-operator}|[A-Z]?\%{method}(?:(?&lt;![!?])=)?)(?=[\s(;]|$)</end>
+      <include>
+        <context where="start" sub-pattern="1" style-ref="keyword"/>
+        <context where="end"   sub-pattern="0" style-ref="function"/>
+        <context ref="ruby-end-at-line-end"/>
+      </include>
+    </context>
+
+    <context id="operators" style-ref="operator">
+      <match extended="true">
+        ( [+-]@
+        | \%{definable-operator}
+        | (?&lt;!%)=(?!&gt;)
+        | \.
+        | ::
+        | \%{no_method_prefix}(?:not|and|or)\%{no_method_suffix}
+        | \%{no_method_prefix}defined\?
+        )
+      </match>
+    </context>
+
+    <context id="syntax-chars" style-ref="syntax-char" extend-parent="false">
+      <match>[\\;]</match>
+    </context>
+
+    <context id="brackets">
+      <include>
+        <context id="normal-brackets">
+          <start>\(</start><end>\)</end>
+          <include>
+            <context where="start" sub-pattern="0" style-ref="syntax-char"/>
+            <context where="end"   sub-pattern="0" style-ref="syntax-char"/>
+            <context ref="ruby:*"/>
+          </include>
+        </context>
+        <context id="square-brackets">
+          <start extended="true">
+            (?: (?&lt;= \%{alnum}[!?] )
+            |   (?&lt;= \%{alnum} | [})\]] )
+            ) \s*(\[)
+          </start>
+          <end>\]</end>
+          <include>
+            <context where="start" sub-pattern="1" style-ref="syntax-char"/>
+            <context where="end"   sub-pattern="0" style-ref="syntax-char"/>
+            <context ref="ruby:*"/>
+          </include>
+        </context>
+        <context id="curly-brackets"><!--(?&lt;= [)\w\]] )    -->
+          <start extended="true">
+            (?: (?&lt;= -> | \%{alnum}[!?] )
+            |   (?&lt;= \%{alnum} | [)\]] )
+            ) \s*(\{)
+          </start>
+          <end>\}</end>
+          <include>
+            <context where="start" sub-pattern="1" style-ref="syntax-char"/>
+            <context where="end"   sub-pattern="0" style-ref="syntax-char"/>
+            <context ref="ruby:*"/>
+          </include>
+        </context>
+      </include>
+    </context>
+
+    <context id="hash" extend-parent="false">
+      <start extended="true">
+        (?&lt;! -> | \%{alnum}[!?] )
+        (?&lt;! \%{alnum} | [)\]] )
+        (\{)
+      </start>
+      <end>\}</end>
+      <include>
+        <context where="start" sub-pattern="1" style-ref="collection"/>
+        <context where="end" sub-pattern="0" style-ref="collection"/>
+        <context ref="ruby:*"/>
+      </include>
+    </context>
+
+    <context id="array">
+      <start extended="true">
+        (?&lt;! \%{alnum}[!?] )
+        (?&lt;! \%{alnum} | [})\]] )
+        (\[)
+      </start>
+      <end>\]</end>
+      <include>
+        <context where="start" sub-pattern="1" style-ref="collection"/>
+        <context where="end" sub-pattern="0" style-ref="collection"/>
+        <context ref="ruby:*"/>
+      </include>
+    </context>
+
+    <context id="collection-chars" style-ref="collection">
+      <match>(=&gt;|,)</match>
+    </context>
+
+    <context id="data" style-ref="string">
+      <start>^__END__</start>
+      <include>
+        <context where="start" sub-pattern="0" style-ref="string-delimiter"/>
+      </include>
+    </context>
+
+    <context id="errors" style-ref="error" extend-parent="false"><!-- split if needed -->
+      <match extended="true">
+        (?: [}\])]
+        |   =end\%{no_method_suffix}
+        )
+      </match>
+    </context>
+
+    <context id="ruby-end-at-line-end" end-at-line-end="true" once-only="true" extend-parent="false">
+      <start></start>
+      <end>(^|$)</end>
+      <include>
+        <context ref="ruby:*"/>
+      </include>
+    </context>
+
+    <context id="ruby" class="no-spell-check">
+      <include>
+        <context ref="def:shebang"/>
+        <context ref="encoding-comment"/>
+        <context ref="shell-like-comment"/><!-- not from def -->
+        <context ref="multiline-comment"/>
+        <context ref="data"/>
+
+        <context ref="heredoc-string"/>
+        <context ref="heredoc-single-quoted-string"/>
+        <context ref="heredoc-double-quoted-string"/>
+        <context ref="heredoc-backtick-quoted-string"/>
+        <context ref="heredoc-indented-string"/>
+        <context ref="heredoc-single-quoted-indented-string"/>
+        <context ref="heredoc-double-quoted-indented-string"/>
+        <context ref="heredoc-backtick-quoted-indented-string"/>
+
+        <context ref="symbol"/>
+        <context ref="single-quoted-symbol"/>
+        <context ref="double-quoted-symbol"/>
+        <context ref="single-quoted-symbol-curly"/>
+        <context ref="single-quoted-symbol-normal"/>
+        <context ref="single-quoted-symbol-square"/>
+        <context ref="single-quoted-symbol-angle"/>
+        <context ref="single-quoted-symbol-generic"/>
+
+        <context ref="double-quoted-string"/>
+        <context ref="double-quoted-string-curly"/>
+        <context ref="double-quoted-string-normal"/>
+        <context ref="double-quoted-string-square"/>
+        <context ref="double-quoted-string-angle"/>
+        <context ref="double-quoted-string-generic"/>
+        <context ref="single-quoted-string"/>
+        <context ref="single-quoted-string-curly"/>
+        <context ref="single-quoted-string-normal"/>
+        <context ref="single-quoted-string-square"/>
+        <context ref="single-quoted-string-angle"/>
+        <context ref="single-quoted-string-generic"/>
+
+        <context ref="double-quoted-word-array-curly"/>
+        <context ref="double-quoted-word-array-normal"/>
+        <context ref="double-quoted-word-array-square"/>
+        <context ref="double-quoted-word-array-angle"/>
+        <context ref="double-quoted-word-array-generic"/>
+        <context ref="single-quoted-word-array-curly"/>
+        <context ref="single-quoted-word-array-normal"/>
+        <context ref="single-quoted-word-array-square"/>
+        <context ref="single-quoted-word-array-angle"/>
+        <context ref="single-quoted-word-array-generic"/>
+
+        <context ref="backtick-quoted-string"/>
+        <context ref="backtick-quoted-string-curly"/>
+        <context ref="backtick-quoted-string-normal"/>
+        <context ref="backtick-quoted-string-square"/>
+        <context ref="backtick-quoted-string-angle"/>
+        <context ref="backtick-quoted-string-generic"/>
+
+        <context ref="regex"/>
+        <context ref="regex-curly"/>
+        <context ref="regex-normal"/>
+        <context ref="regex-square"/>
+        <context ref="regex-angle"/>
+        <context ref="regex-generic"/>
+
+        <context ref="function"/>
+
+        <context ref="special-variables"/>
+        <context ref="global-variables"/>
+
+        <context ref="ternary-operators"/>
+        <context ref="hash-symbols"/>
+
+        <context ref="keywords"/>
+        <context ref="important-methods"/>
+        <context ref="special-values"/>
+
+        <context ref="important-constants"/>
+        <context ref="constants"/>
+
+        <context ref="class-variables"/>
+        <context ref="instance-variables"/>
+
+        <context ref="float"/>
+        <context ref="integer"/>
+        <context ref="hex"/>
+        <context ref="octal"/>
+        <context ref="binary"/>
+
+        <context ref="block-parameters"/>
+        <context ref="hash"/>
+        <context ref="array"/>
+        <context ref="brackets"/>
+
+        <context ref="errors"/>
+
+        <context ref="collection-chars"/>
+        <context ref="operators"/>
+        <context ref="syntax-chars"/>
+
+        <context ref="methods"/>
+
+        <context ref="question-mark-string"/>
+
+      </include>
+    </context>
+ </definitions>
+</language>
+

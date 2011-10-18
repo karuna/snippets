@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<language id="xml-erb" _name="XML (erb)" version="2.0" _section="Markup">
+  <metadata>
+    <property name="mimetypes">text/x-xml-erb</property>
+    <property name="globs">*.xml.erb</property>
+    <property name="block-comment-start">&lt;!--</property>
+    <property name="block-comment-end">--&gt;</property>
+  </metadata>
+
+  <!-- also see erb.lang -->
+
+  <definitions>
+    <context id="xml-erb">
+      <include>
+        <context ref="erb:erb"/>
+        <context ref="xml:xml"/>
+      </include>
+    </context>
+  </definitions>
+</language>
+

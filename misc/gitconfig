@@ -1,0 +1,36 @@
+[core]
+  editor = vi
+[giggle]
+	main-window-maximized = true
+	main-window-geometry = 296x298+0+0
+	file-view-hpane-position = 452
+	history-view-vpane-position = 443
+	file-view-vpane-position = 446
+	main-window-view = FileView
+[alias]
+  co = checkout
+  ci = commit
+  st = status
+  br = branch
+  hist = log --pretty=format:\"%H %ad | %s%d [%an]\" --graph --date=iso
+  history = log --pretty=format:\"%H %ad | %s%d [%an]\" --graph --date=iso
+  type = cat-file -t
+  dump = cat-file -p
+  meld = !/usr/bin/git-meld.pl
+[user]
+  name = Karuna Murti
+  email = karuna@kiranatama.com
+[merge]
+	tool = diffmerge
+[color]
+  branch = auto
+  diff = auto
+  interactive = auto
+  status = auto
+[diff]
+	tool = diffmerge
+[difftool "diffmerge"]
+	cmd = diffmerge \"$LOCAL\" \"$REMOTE\"
+[mergetool "diffmerge"]
+	cmd = diffmerge --merge --result=\"$MERGED\"\n  \"$LOCAL\" \"$BASE\" \"$REMOTE\"
+	trustexitcode = false
