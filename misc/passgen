@@ -1,0 +1,7 @@
+#!/usr/bin/ruby
+if rand(2) == 0
+  output = (`dd if=/dev/urandom count=1 2> /dev/null | uuencode -m - | sed -ne 2p | cut -c-6`+`dd if=/dev/urandom count=1 2> /dev/null | uuencode - | sed -ne 2p | cut -c-6`).gsub("\n","")
+else
+  output = (`dd if=/dev/urandom count=1 2> /dev/null | uuencode - | sed -ne 2p | cut -c-6`+`dd if=/dev/urandom count=1 2> /dev/null | uuencode -m - | sed -ne 2p | cut -c-6`).gsub("\n","")
+end
+puts output
